@@ -1,0 +1,20 @@
+# Secrets
+shauk/Secrets.swift
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.xcarchive
+*.xcresult
+.build/
+
+# macOS
+.DS_Store
+
+# SPM
+.swiftpm/

@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		FB2F93D22F9E76920021691C /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = FB2F93D12F9E76920021691C /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		FB2F93972F9E6E980021691C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +33,22 @@
 		FB2F93A02F9E6E980021691C /* shaukUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = shaukUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		FB2F93D52F9E7A500021691C /* Exceptions for "shauk" folder in "shauk" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Secrets.example.swift,
+			);
+			target = FB2F93882F9E6E960021691C /* shauk */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		FB2F938B2F9E6E960021691C /* shauk */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				FB2F93D52F9E7A500021691C /* Exceptions for "shauk" folder in "shauk" target */,
+			);
 			path = shauk;
 			sourceTree = "<group>";
 		};
@@ -52,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FB2F93D22F9E76920021691C /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +96,7 @@
 				FB2F938B2F9E6E960021691C /* shauk */,
 				FB2F93992F9E6E980021691C /* shaukTests */,
 				FB2F93A32F9E6E980021691C /* shaukUITests */,
+				FB2F93D02F9E76920021691C /* Frameworks */,
 				FB2F938A2F9E6E960021691C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +109,13 @@
 				FB2F93A02F9E6E980021691C /* shaukUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		FB2F93D02F9E76920021691C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +138,7 @@
 			);
 			name = shauk;
 			packageProductDependencies = (
+				FB2F93D12F9E76920021691C /* Supabase */,
 			);
 			productName = shauk;
 			productReference = FB2F93892F9E6E960021691C /* shauk.app */;
@@ -195,6 +222,9 @@
 			);
 			mainGroup = FB2F93802F9E6E960021691C;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				FB2F93CF2F9E75A30021691C /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = FB2F938A2F9E6E960021691C /* Products */;
 			projectDirPath = "";
@@ -410,7 +440,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.vercel.khandelwal.shauk;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shauk.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -442,7 +472,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.vercel.khandelwal.shauk;
+				PRODUCT_BUNDLE_IDENTIFIER = com.shauk.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -578,6 +608,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FB2F93CF2F9E75A30021691C /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FB2F93D12F9E76920021691C /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FB2F93CF2F9E75A30021691C /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = FB2F93812F9E6E960021691C /* Project object */;
 }
