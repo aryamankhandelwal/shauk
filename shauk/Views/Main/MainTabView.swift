@@ -20,7 +20,7 @@ struct MainTabView: View {
                 LoadingView(query: vm.prompt)
                     .transition(.opacity)
             case .results(let cards):
-                ResultsListView(cards: cards, onBack: { vm.reset() })
+                SwipeFeedView(cards: cards, onBack: { vm.reset() })
                     .transition(.opacity)
             default:
                 VStack(spacing: 0) {
