@@ -121,6 +121,32 @@ private struct FeedCardView: View {
                 .aspectRatio(contentMode: .fill)
                 .frame(width: size.width, height: size.height)
                 .clipped()
+        } else if card.imageFailed {
+            ZStack {
+                Color(hex: "0d0b09")
+                VStack(spacing: Spacing.md) {
+                    Image(systemName: "photo.badge.exclamationmark")
+                        .font(.system(size: 36, weight: .light))
+                        .foregroundColor(Color(hex: "5a4e42"))
+                    Text("Couldn't load image")
+                        .font(DesignFonts.dmSans(size: 14))
+                        .foregroundColor(Color(hex: "5a4e42"))
+                    Button {
+                        if let url = URL(string: card.sourceURL) {
+                            UIApplication.shared.open(url)
+                        }
+                    } label: {
+                        Text("Open in browser")
+                            .font(DesignFonts.dmSans(size: 13, weight: .medium))
+                            .foregroundColor(Color(hex: "c9a96e"))
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.vertical, Spacing.xs)
+                            .background(Color(hex: "c9a96e").opacity(0.15))
+                            .clipShape(Capsule())
+                    }
+                }
+            }
+            .frame(width: size.width, height: size.height)
         } else {
             ZStack {
                 Color(hex: "0d0b09")

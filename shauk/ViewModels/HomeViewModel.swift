@@ -65,16 +65,22 @@ final class HomeViewModel {
 
     private func fetchScreenshots(for cards: [OutfitCard]) {
         Task {
-            await withTaskGroup(of: (String, String?).self) { group in
+            await withTaskGroup(of: (String, String?, Bool).self) { group in
                 for card in cards {
                     group.addTask {
-                        let image = try? await APIService.shared.screenshot(url: card.sourceURL)
-                        return (card.id, image)
+                        do {
+                            let image = try await APIService.shared.screenshot(url: card.sourceURL)
+                            return (card.id, image, false)
+                        } catch {
+                            return (card.id, nil, true)
+                        }
                     }
                 }
-                for await (id, image) in group {
+                for await (id, image, failed) in group {
                     if let image {
                         self.updateCard(id: id, imageBase64: image)
+                    } else if failed {
+                        self.markCardFailed(id: id)
                     }
                 }
             }
@@ -85,6 +91,13 @@ final class HomeViewModel {
         guard case .results(var cards) = phase,
               let idx = cards.firstIndex(where: { $0.id == id }) else { return }
         cards[idx] = cards[idx].withImage(imageBase64)
+        phase = .results(cards)
+    }
+
+    private func markCardFailed(id: String) {
+        guard case .results(var cards) = phase,
+              let idx = cards.firstIndex(where: { $0.id == id }) else { return }
+        cards[idx] = cards[idx].withImageFailed()
         phase = .results(cards)
     }
 
