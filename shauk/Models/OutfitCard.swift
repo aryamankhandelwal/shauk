@@ -55,6 +55,12 @@ struct OutfitCard: Codable, Identifiable {
         OutfitCard(id: id, brand: brand, name: name, price: price,
                    occasion: occasion, tags: tags, imageBase64: nil, sourceURL: sourceURL, imageFailed: true)
     }
+
+    func withImageAndURL(_ base64: String, resolvedURL: String?) -> OutfitCard {
+        OutfitCard(id: id, brand: brand, name: name, price: price,
+                   occasion: occasion, tags: tags, imageBase64: base64,
+                   sourceURL: resolvedURL ?? sourceURL)
+    }
 }
 
 // MARK: - SearchResponse

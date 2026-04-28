@@ -74,7 +74,12 @@ final class APIService {
 
     // MARK: - Screenshot
 
-    func screenshot(url: String) async throws -> String {
+    struct ScreenshotResult {
+        let imageBase64: String
+        let resolvedURL: String?
+    }
+
+    func screenshot(url: String) async throws -> ScreenshotResult {
         var req = URLRequest(url: baseURL.appendingPathComponent("api/screenshot"))
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -87,6 +92,7 @@ final class APIService {
         struct ScreenshotResponse: Decodable {
             let ok: Bool
             let image_base64: String?
+            let resolved_url: String?
             let error: String?
         }
 
@@ -94,6 +100,6 @@ final class APIService {
         guard response.ok, let imageBase64 = response.image_base64 else {
             throw APIError.searchFailed(response.error ?? "Screenshot failed")
         }
-        return imageBase64
+        return ScreenshotResult(imageBase64: imageBase64, resolvedURL: response.resolved_url)
     }
 }

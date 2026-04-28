@@ -63,34 +63,50 @@ final class HomeViewModel {
         }
     }
 
+    /// Maximum number of cards to show in the feed after filtering.
+    private let maxDisplayCards = 6
+
     private func fetchScreenshots(for cards: [OutfitCard]) {
         Task {
-            await withTaskGroup(of: (String, String?, Bool).self) { group in
+            await withTaskGroup(of: (String, String?, String?, Bool).self) { group in
                 for card in cards {
                     group.addTask {
                         do {
-                            let image = try await APIService.shared.screenshot(url: card.sourceURL)
-                            return (card.id, image, false)
+                            let result = try await APIService.shared.screenshot(url: card.sourceURL)
+                            return (card.id, result.imageBase64, result.resolvedURL, false)
                         } catch {
-                            return (card.id, nil, true)
+                            return (card.id, nil, nil, true)
                         }
                     }
                 }
-                for await (id, image, failed) in group {
+                for await (id, image, resolvedURL, failed) in group {
                     if let image {
-                        self.updateCard(id: id, imageBase64: image)
+                        self.updateCard(id: id, imageBase64: image, resolvedURL: resolvedURL)
                     } else if failed {
                         self.markCardFailed(id: id)
                     }
                 }
             }
+            // After all screenshots resolve, drop failed cards and keep up to maxDisplayCards
+            self.filterCompletedCards()
         }
     }
 
-    private func updateCard(id: String, imageBase64: String) {
+    /// Remove cards that failed to load images and cap at maxDisplayCards.
+    private func filterCompletedCards() {
+        guard case .results(let cards) = phase else { return }
+        let successful = cards.filter { $0.imageBase64 != nil }
+        let display = Array(successful.prefix(maxDisplayCards))
+        // Show whatever we have — even if fewer than maxDisplayCards
+        if !display.isEmpty {
+            phase = .results(display)
+        }
+    }
+
+    private func updateCard(id: String, imageBase64: String, resolvedURL: String? = nil) {
         guard case .results(var cards) = phase,
               let idx = cards.firstIndex(where: { $0.id == id }) else { return }
-        cards[idx] = cards[idx].withImage(imageBase64)
+        cards[idx] = cards[idx].withImageAndURL(imageBase64, resolvedURL: resolvedURL)
         phase = .results(cards)
     }
 
