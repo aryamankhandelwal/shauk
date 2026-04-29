@@ -113,54 +113,71 @@ private struct FeedCardView: View {
 
     @ViewBuilder
     private var cardImage: some View {
-        if let imageBase64 = card.imageBase64,
-           let data = Data(base64Encoded: imageBase64),
-           let uiImage = UIImage(data: data) {
-            Image(uiImage: uiImage)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: size.width, height: size.height)
-                .clipped()
-        } else if card.imageFailed {
-            ZStack {
-                Color(hex: "0d0b09")
-                VStack(spacing: Spacing.md) {
-                    Image(systemName: "photo.badge.exclamationmark")
-                        .font(.system(size: 36, weight: .light))
-                        .foregroundColor(Color(hex: "5a4e42"))
-                    Text("Couldn't load image")
-                        .font(DesignFonts.dmSans(size: 14))
-                        .foregroundColor(Color(hex: "5a4e42"))
-                    Button {
-                        if let url = URL(string: card.sourceURL) {
-                            UIApplication.shared.open(url)
-                        }
-                    } label: {
-                        Text("Open in browser")
-                            .font(DesignFonts.dmSans(size: 13, weight: .medium))
-                            .foregroundColor(Color(hex: "c9a96e"))
-                            .padding(.horizontal, Spacing.md)
-                            .padding(.vertical, Spacing.xs)
-                            .background(Color(hex: "c9a96e").opacity(0.15))
-                            .clipShape(Capsule())
-                    }
+        let urlString = card.imageURL ?? card.thumbnailURL
+        if let urlString, let url = URL(string: urlString) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: size.width, height: size.height)
+                        .clipped()
+                case .failure:
+                    fallbackView
+                case .empty:
+                    loadingView
+                @unknown default:
+                    loadingView
                 }
             }
             .frame(width: size.width, height: size.height)
         } else {
-            ZStack {
-                Color(hex: "0d0b09")
-                VStack(spacing: Spacing.md) {
-                    ProgressView()
-                        .tint(Color(hex: "c9a96e"))
-                        .scaleEffect(1.4)
-                    Text("Loading look…")
-                        .font(DesignFonts.dmSans(size: 13))
-                        .foregroundColor(Color(hex: "5a4e42"))
+            loadingView
+        }
+    }
+
+    private var loadingView: some View {
+        ZStack {
+            Color(hex: "0d0b09")
+            VStack(spacing: Spacing.md) {
+                ProgressView()
+                    .tint(Color(hex: "c9a96e"))
+                    .scaleEffect(1.4)
+                Text("Loading look…")
+                    .font(DesignFonts.dmSans(size: 13))
+                    .foregroundColor(Color(hex: "5a4e42"))
+            }
+        }
+        .frame(width: size.width, height: size.height)
+    }
+
+    private var fallbackView: some View {
+        ZStack {
+            Color(hex: "0d0b09")
+            VStack(spacing: Spacing.md) {
+                Image(systemName: "photo.badge.exclamationmark")
+                    .font(.system(size: 36, weight: .light))
+                    .foregroundColor(Color(hex: "5a4e42"))
+                Text("Couldn't load image")
+                    .font(DesignFonts.dmSans(size: 14))
+                    .foregroundColor(Color(hex: "5a4e42"))
+                Button {
+                    if let url = URL(string: card.sourceURL) {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    Text("Open in browser")
+                        .font(DesignFonts.dmSans(size: 13, weight: .medium))
+                        .foregroundColor(Color(hex: "c9a96e"))
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, Spacing.xs)
+                        .background(Color(hex: "c9a96e").opacity(0.15))
+                        .clipShape(Capsule())
                 }
             }
-            .frame(width: size.width, height: size.height)
         }
+        .frame(width: size.width, height: size.height)
     }
 
     // MARK: Bottom overlay

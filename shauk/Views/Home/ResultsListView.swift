@@ -139,25 +139,38 @@ private struct OutfitCardRow: View {
 
     @ViewBuilder
     private var cardImage: some View {
-        if let imageBase64 = card.imageBase64,
-           let data = Data(base64Encoded: imageBase64),
-           let uiImage = UIImage(data: data) {
-            Image(uiImage: uiImage)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(maxWidth: .infinity)
-                .frame(height: 280)
-                .clipped()
-        } else {
-            // Fallback gradient placeholder
-            LinearGradient(
-                colors: [Color(hex: "1a1510"), Color(hex: "0d0b09")],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+        let urlString = card.imageURL ?? card.thumbnailURL
+        if let urlString, let url = URL(string: urlString) {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 280)
+                        .clipped()
+                case .failure, .empty:
+                    placeholderGradient
+                @unknown default:
+                    placeholderGradient
+                }
+            }
             .frame(maxWidth: .infinity)
             .frame(height: 280)
+        } else {
+            placeholderGradient
         }
+    }
+
+    private var placeholderGradient: some View {
+        LinearGradient(
+            colors: [Color(hex: "1a1510"), Color(hex: "0d0b09")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .frame(maxWidth: .infinity)
+        .frame(height: 280)
     }
 }
 

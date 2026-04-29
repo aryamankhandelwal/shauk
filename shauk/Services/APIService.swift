@@ -75,7 +75,7 @@ final class APIService {
     // MARK: - Screenshot
 
     struct ScreenshotResult {
-        let imageBase64: String
+        let imageURL: String
         let resolvedURL: String?
     }
 
@@ -91,15 +91,15 @@ final class APIService {
 
         struct ScreenshotResponse: Decodable {
             let ok: Bool
-            let image_base64: String?
+            let image_url: String?
             let resolved_url: String?
             let error: String?
         }
 
         let response = try JSONDecoder().decode(ScreenshotResponse.self, from: data)
-        guard response.ok, let imageBase64 = response.image_base64 else {
+        guard response.ok, let imageURL = response.image_url else {
             throw APIError.searchFailed(response.error ?? "Screenshot failed")
         }
-        return ScreenshotResult(imageBase64: imageBase64, resolvedURL: response.resolved_url)
+        return ScreenshotResult(imageURL: imageURL, resolvedURL: response.resolved_url)
     }
 }
