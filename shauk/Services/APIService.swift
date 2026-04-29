@@ -83,7 +83,7 @@ final class APIService {
         var req = URLRequest(url: baseURL.appendingPathComponent("api/screenshot"))
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.timeoutInterval = 15
+        req.timeoutInterval = 25
 
         req.httpBody = try JSONEncoder().encode(["url": url])
 
