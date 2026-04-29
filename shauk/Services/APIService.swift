@@ -79,13 +79,17 @@ final class APIService {
         let resolvedURL: String?
     }
 
-    func screenshot(url: String) async throws -> ScreenshotResult {
+    func screenshot(url: String, thumbnailURL: String? = nil) async throws -> ScreenshotResult {
         var req = URLRequest(url: baseURL.appendingPathComponent("api/screenshot"))
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.timeoutInterval = 25
+        req.timeoutInterval = 55
 
-        req.httpBody = try JSONEncoder().encode(["url": url])
+        struct ScreenshotRequest: Encodable {
+            let url: String
+            let thumbnail_url: String?
+        }
+        req.httpBody = try JSONEncoder().encode(ScreenshotRequest(url: url, thumbnail_url: thumbnailURL))
 
         let (data, _) = try await URLSession.shared.data(for: req)
 

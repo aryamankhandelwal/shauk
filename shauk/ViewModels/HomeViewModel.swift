@@ -63,27 +63,43 @@ final class HomeViewModel {
         }
     }
 
-    /// Maximum number of cards to show in the feed.
-    private let maxDisplayCards = 6
+    /// Maximum concurrent screenshot requests to avoid overwhelming the API.
+    private let maxConcurrentScreenshots = 4
 
     private func fetchImageURLs(for cards: [OutfitCard]) {
         Task {
             await withTaskGroup(of: (String, String?, String?).self) { group in
-                for card in cards {
+                var inFlight = 0
+                var cardIterator = cards.makeIterator()
+
+                // Seed the group with initial batch
+                while inFlight < maxConcurrentScreenshots, let card = cardIterator.next() {
+                    inFlight += 1
                     group.addTask {
                         do {
-                            let result = try await APIService.shared.screenshot(url: card.sourceURL)
+                            let result = try await APIService.shared.screenshot(url: card.sourceURL, thumbnailURL: card.thumbnailURL)
                             return (card.id, result.imageURL, result.resolvedURL)
                         } catch {
                             return (card.id, nil, nil)
                         }
                     }
                 }
+
+                // As each completes, enqueue the next card
                 for await (id, imageURL, resolvedURL) in group {
                     if let imageURL {
                         self.updateCard(id: id, imageURL: imageURL, resolvedURL: resolvedURL)
                     }
-                    // Failed screenshots are silently ignored — card keeps its thumbnail
+                    if let card = cardIterator.next() {
+                        group.addTask {
+                            do {
+                                let result = try await APIService.shared.screenshot(url: card.sourceURL, thumbnailURL: card.thumbnailURL)
+                                return (card.id, result.imageURL, result.resolvedURL)
+                            } catch {
+                                return (card.id, nil, nil)
+                            }
+                        }
+                    }
                 }
             }
         }
