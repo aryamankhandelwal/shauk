@@ -76,4 +76,53 @@ final class SupabaseService {
             .value
         return response.first
     }
+
+    // MARK: - Saved Outfits
+
+    /// Saves a liked outfit. Upserts on (user_id, id) so it is idempotent.
+    func saveOutfit(_ card: OutfitCard, occasionSearch: String?) async throws {
+        let userId = try await currentUserID()
+        let record = SavedOutfitRecord(from: card, userId: userId, occasionSearch: occasionSearch)
+        try await client
+            .from("saved_outfits")
+            .upsert(record, onConflict: "user_id,id")
+            .execute()
+    }
+
+    /// Removes a saved outfit. No-ops silently if the row does not exist.
+    func unsaveOutfit(cardID: String) async throws {
+        let userId = try await currentUserID()
+        try await client
+            .from("saved_outfits")
+            .delete()
+            .eq("user_id", value: userId.uuidString)
+            .eq("id", value: cardID)
+            .execute()
+    }
+
+    /// Fetches all saved outfits for the current user, most recent first.
+    func fetchSavedOutfits() async throws -> [SavedOutfitRecord] {
+        let userId = try await currentUserID()
+        let records: [SavedOutfitRecord] = try await client
+            .from("saved_outfits")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .order("saved_at", ascending: false)
+            .execute()
+            .value
+        return records
+    }
+
+    /// Fetches only the set of saved card IDs — lightweight, used to restore liked state.
+    func fetchSavedIDs() async throws -> Set<String> {
+        let userId = try await currentUserID()
+        struct IDOnly: Decodable { let id: String }
+        let rows: [IDOnly] = try await client
+            .from("saved_outfits")
+            .select("id")
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+            .value
+        return Set(rows.map(\.id))
+    }
 }

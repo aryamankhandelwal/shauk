@@ -6,9 +6,9 @@ import SwiftUI
 struct SwipeFeedView: View {
     let cards: [OutfitCard]
     let onBack: () -> Void
+    var vm: HomeViewModel
 
     @State private var currentIndex: Int = 0
-    @State private var likedIDs: Set<String> = []
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -23,8 +23,8 @@ struct SwipeFeedView: View {
                         FeedCardView(
                             card: card,
                             size: geo.size,
-                            isLiked: likedIDs.contains(card.id),
-                            onLike: { toggleLike(card.id) }
+                            isLiked: vm.likedIDs.contains(card.id),
+                            onLike: { vm.toggleLike(card) }
                         )
                         .tag(index)
                         .rotationEffect(.degrees(-90))
@@ -42,6 +42,7 @@ struct SwipeFeedView: View {
             topBar
         }
         .ignoresSafeArea(edges: .bottom)
+        .task { await vm.loadSavedIDs() }
     }
 
     // MARK: - Top Bar
@@ -76,13 +77,6 @@ struct SwipeFeedView: View {
         .padding(.top, 56)
     }
 
-    private func toggleLike(_ id: String) {
-        if likedIDs.contains(id) {
-            likedIDs.remove(id)
-        } else {
-            likedIDs.insert(id)
-        }
-    }
 }
 
 // MARK: - FeedCardView
@@ -194,25 +188,41 @@ private struct FeedCardView: View {
                 .foregroundColor(Color(hex: "f0e6d3"))
                 .lineLimit(2)
 
-            if let price = card.price {
-                Text(price)
-                    .font(DesignFonts.dmSans(size: 14))
-                    .foregroundColor(Color(hex: "8a7a6a"))
+            HStack(spacing: Spacing.xs) {
+                if let price = card.price {
+                    let priceText = card.fabric.map { "\(price) · \($0.capitalized)" } ?? price
+                    Text(priceText)
+                        .font(DesignFonts.dmSans(size: 14))
+                        .foregroundColor(Color(hex: "8a7a6a"))
+                }
+                if let color = card.color {
+                    Circle()
+                        .fill(colorValue(for: color))
+                        .frame(width: 10, height: 10)
+                        .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 0.5))
+                }
             }
 
-            if !card.tags.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: Spacing.xxs) {
-                        ForEach(card.tags, id: \.self) { tag in
-                            Text(tag)
-                                .font(DesignFonts.dmSans(size: 11))
-                                .foregroundColor(Color(hex: "c9a96e"))
-                                .padding(.horizontal, Spacing.xs)
-                                .padding(.vertical, 3)
-                                .background(Color(hex: "c9a96e").opacity(0.12))
-                                .overlay(Capsule().stroke(Color(hex: "c9a96e").opacity(0.22), lineWidth: 1))
-                                .clipShape(Capsule())
-                        }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Spacing.xxs) {
+                    if let type = card.garmentType {
+                        Text(type.capitalized)
+                            .font(DesignFonts.dmSans(size: 11, weight: .semibold))
+                            .foregroundColor(Color(hex: "060504"))
+                            .padding(.horizontal, Spacing.xs)
+                            .padding(.vertical, 3)
+                            .background(Color(hex: "c9a96e"))
+                            .clipShape(Capsule())
+                    }
+                    ForEach(card.tags, id: \.self) { tag in
+                        Text(tag)
+                            .font(DesignFonts.dmSans(size: 11))
+                            .foregroundColor(Color(hex: "c9a96e"))
+                            .padding(.horizontal, Spacing.xs)
+                            .padding(.vertical, 3)
+                            .background(Color(hex: "c9a96e").opacity(0.12))
+                            .overlay(Capsule().stroke(Color(hex: "c9a96e").opacity(0.22), lineWidth: 1))
+                            .clipShape(Capsule())
                     }
                 }
             }
@@ -228,6 +238,41 @@ private struct FeedCardView: View {
                 endPoint: .bottom
             )
         )
+    }
+
+    // MARK: Color Helper
+
+    private func colorValue(for name: String) -> Color {
+        switch name.lowercased() {
+        case "ivory", "cream":          return Color(hex: "FFFFF0")
+        case "mauve":                   return Color(hex: "E0B0C8")
+        case "white":                   return Color.white
+        case "black":                   return Color.black
+        case "red":                     return Color(hex: "CC2200")
+        case "maroon":                  return Color(hex: "800020")
+        case "pink":                    return Color(hex: "FF69B4")
+        case "blush":                   return Color(hex: "FFB6C1")
+        case "peach":                   return Color(hex: "FFCBA4")
+        case "coral":                   return Color(hex: "FF6B6B")
+        case "rust":                    return Color(hex: "B7410E")
+        case "orange":                  return Color(hex: "FF8C00")
+        case "yellow":                  return Color(hex: "FFD700")
+        case "mustard":                 return Color(hex: "FFDB58")
+        case "green":                   return Color(hex: "228B22")
+        case "mint":                    return Color(hex: "98FF98")
+        case "teal":                    return Color(hex: "008080")
+        case "blue":                    return Color(hex: "1E90FF")
+        case "navy":                    return Color(hex: "001F5B")
+        case "purple":                  return Color(hex: "800080")
+        case "lavender":                return Color(hex: "E6E6FA")
+        case "violet":                  return Color(hex: "7F00FF")
+        case "grey", "gray":            return Color(hex: "808080")
+        case "gold":                    return Color(hex: "FFD700")
+        case "silver":                  return Color(hex: "C0C0C0")
+        case "beige":                   return Color(hex: "F5F5DC")
+        case "nude":                    return Color(hex: "E8C9A0")
+        default:                        return Color(hex: "c9a96e")
+        }
     }
 
     // MARK: Side actions
@@ -279,5 +324,5 @@ private struct FeedCardView: View {
 }
 
 #Preview {
-    SwipeFeedView(cards: [], onBack: {})
+    SwipeFeedView(cards: [], onBack: {}, vm: HomeViewModel())
 }

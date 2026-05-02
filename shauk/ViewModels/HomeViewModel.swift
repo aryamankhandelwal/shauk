@@ -12,6 +12,8 @@ final class HomeViewModel {
     var phase: Phase = .idle
     var userProfile: UserProfile?
     var recentSearches: [String] = []
+    var likedIDs: Set<String> = []
+    private var currentOccasionSearch: String = ""
 
     // MARK: Phase
 
@@ -49,9 +51,25 @@ final class HomeViewModel {
 
     // MARK: - Search
 
+    func loadSavedIDs() async {
+        likedIDs = (try? await SupabaseService.shared.fetchSavedIDs()) ?? []
+    }
+
+    func toggleLike(_ card: OutfitCard) {
+        if likedIDs.contains(card.id) {
+            likedIDs.remove(card.id)
+            Task { try? await SupabaseService.shared.unsaveOutfit(cardID: card.id) }
+        } else {
+            likedIDs.insert(card.id)
+            let search = currentOccasionSearch
+            Task { try? await SupabaseService.shared.saveOutfit(card, occasionSearch: search) }
+        }
+    }
+
     func search() async {
         guard canSearch else { return }
         let query = prompt.trimmingCharacters(in: .whitespaces)
+        currentOccasionSearch = query
         addRecentSearch(query)
         phase = .loading
         do {
